@@ -1,0 +1,89 @@
+/**
+ Styles for kursoversikt (page tempate).
+ */
+
+[hidden] { display: none !important; }	/* For IE, just in case */
+
+.page-template-templatesoceanwp-calendar-php h3 { font-size: smaller; }
+/*.page-template-templatesoceanwp-calendar-php p.has-background { margin: 0 0 0 2em; max-width: calc(33% + 220px); }*/
+.page-template-templatesoceanwp-calendar-php .entry-content > p { margin: 0 auto 0 auto; max-width: calc(33% + 220px); }
+
+.page-template-templatesoceanwp-calendar-php .tablist { margin: 1em 0; border-collapse: collapse; margin-top: 1em; }
+.page-template-templatesoceanwp-calendar-php .tablist button { float: left; transition: .8s; font-weight: bold; padding: 0 18px; font-size: 24px; border: 2px solid lightgray;; }
+
+.page-template-templatesoceanwp-calendar-php .tablist button:hover:not(.active),
+.page-template-templatesoceanwp-calendar-php .tablist button:focus:not(.active) {
+	background-color: gray; color: rgb(235, 246, 250);
+}
+
+.page-template-templatesoceanwp-calendar-php .tablist button.active { color: rgb(235, 246, 250); background-color: rgb(114, 193, 226); border-spacing: 0; border: 2px solid rgb(114, 193, 226); border-bottom: 2px solid rgb(114, 193, 226); border-radius: 2px; margin-bottom: 0; }
+.page-template-templatesoceanwp-calendar-php table { width: 99%; border: 2px solid rgb(114, 193, 226); border-radius: 2px; margin: 0; padding: 0; }
+.page-template-templatesoceanwp-calendar-php table tr { height: 4em; }
+.page-template-templatesoceanwp-calendar-php table tr th { text-transform: none; font-weight: bold; } /* Undo theme setting */
+
+.page-template-templatesoceanwp-calendar-php table tr th[scope="row"] { width: 5%; white-space: nowrap; vertical-align: middle; } /* Time column */
+
+.page-template-templatesoceanwp-calendar-php table tr th:first-child, 
+.page-template-templatesoceanwp-calendar-php table tr td:first-child /* Undo theme setting */ {
+	padding-left: .5em; padding-right: .5em; min-width: 7.8em; white-space: normal;
+}
+
+.page-template-templatesoceanwp-calendar-php table tr td,
+.page-template-templatesoceanwp-calendar-php table tr th[scope="col"]:not(:first-of-type) /* Columns headings, except the leftmost */ {
+	text-align: center; vertical-align: middle;
+}
+
+.page-template-templatesoceanwp-calendar-php table tr th,
+.page-template-templatesoceanwp-calendar-php table tr td {
+	border: 1px solid rgb(114, 193, 226); border-collapse: collapse; padding: 0; /* The a element display block will have the padding */
+}
+.page-template-templatesoceanwp-calendar-php table tr th { background-color: rgb(114, 193, 226); color: rgb(235, 246, 250); border-color: rgb(235, 246, 250); }
+
+.page-template-templatesoceanwp-calendar-php table tr:nth-child(2n) td/*,
+.page-template-templatesoceanwp-calendar-php table tr:nth-child(2n) th*/ {
+	background-color: rgb(249, 253, 254);
+}
+
+.page-template-templatesoceanwp-calendar-php table tr td.active { font-weight: bold; }
+.page-template-templatesoceanwp-calendar-php table tr td.active:hover { background-color: lightblue; }
+.page-template-templatesoceanwp-calendar-php table tr td.inactive { background-color: pink; }
+.page-template-templatesoceanwp-calendar-php table tr td a { display: block; color: inherit; padding: 8px 4px 8px .5em}
+
+.page-template-templatesoceanwp-calendar-php table tr td a[href]:hover,
+.page-template-templatesoceanwp-calendar-php table tr td a[href]:focus {
+	background-color: lightblue; text-decoration: underline;
+}
+
+@media screen and ( min-width: 800px ) /* Narrow screen*/ {
+	.page-template-templatesoceanwp-calendar-php .entry-content { margin: 0 4em; }
+}
+
+@media screen and ( min-width: 768px ) { /* iPad and larger */
+	.page-template-templatesoceanwp-calendar-php table tr td,
+	
+	.page-template-templatesoceanwp-calendar-php table th[scope="col"]:not(:first-of-type) /* Columns headings, except the leftmost */ {
+		width: 19%;
+	}
+}
+
+@media screen and ( max-width: 767px ) /* Smaller than iPad */ {
+	.page-template-templatesoceanwp-calendar-php .entry-content { margin: 0 8px; }
+	.page-template-templatesoceanwp-calendar-php table tr th[scope="row"] { width: auto; }
+	.page-template-templatesoceanwp-calendar-php table thead { clip: rect( 0 0 0 0 ); position: absolute; width: 1px; overflow: hidden; margin: -1px; } /* Hide header */
+	
+	.page-template-templatesoceanwp-calendar-php table tr { height: auto; }
+	
+	.page-template-templatesoceanwp-calendar-php table tr,
+	.page-template-templatesoceanwp-calendar-php table td, table th {
+		display: block;
+	}
+	
+	.page-template-templatesoceanwp-calendar-php table tr td::before, /* Use attribute as header */
+	.page-template-templatesoceanwp-calendar-php table th::before {
+		content: attr( data-label ); float: left; margin-left: 1em;
+	}
+
+	.page-template-templatesoceanwp-calendar-php table tr td a { clear: left; padding-top: 0; padding-bottom: 0; line-height: 120%; position: relative; bottom: 1.3em; margin-bottom: -1em; }
+	.page-template-templatesoceanwp-calendar-php p.has-background { margin-left: 10px; }
+	.page-template-templatesoceanwp-calendar-php table th.weekday { display: none; };
+}

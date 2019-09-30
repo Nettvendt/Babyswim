@@ -1,0 +1,33 @@
+.wrap [role="tablist"] { font-size: 18px; margin-top: 1em; }
+.wrap [role="tablist"] [aria-selected="true"] { background-color: #6bc4ff; color: white; }
+.wrap #search { width: 64em; padding: 1em; border: 1px solid darkgray; }
+.wrap .printarea *, .wrap #printarea th, .wrap #printarea td { border-color: black; color: black; font-size: large; font-weight: bold; }
+.wrap .printarea hr { background-color: black; }
+.wrap .printarea table { margin-top: 2em; }
+.wrap .printarea table, .wrap #printarea table th, .wrap #printarea table td { vertical-align: middle; font-size: 14px; border: 1px solid black; border-collapse: collapse; }
+.wrap .printarea h1, h2, h3, h4 { margin: 18px 0; padding: 0; line-height: 18.2px; }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#loader {
+	position: absolute;
+	margin: 11em 30em;;
+	left: 0;
+	right: 0;
+	border: 6px solid #444;
+	border-top: 6px solid #6bc4ff;
+	border-radius: 50%;
+	width: 100px;
+	height: 100px;
+	animation: spin 2s linear infinite;
+}
+
+#load-text {
+	position: absolute;
+	margin: calc(11em + 44px) calc(30em + 18px);
+	left: 0;
+	right: 0;
+}
