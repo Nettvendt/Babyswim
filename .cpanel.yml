@@ -1,0 +1,5 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/babysywr/public_html/wp-content/plugins/
+    - /bin/cp babyswim-kursoversikt-2 $DEPLOYPATH
+    - /bin/cp right-now-extra-2 $DEPLOYPATH
