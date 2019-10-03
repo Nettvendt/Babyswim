@@ -192,19 +192,18 @@ class Kursoversikt_Preorder {
 				<label for="pages" title="Antall: <?=count($pages)?>.">Oversikt-side (å ta med lenke til)</label><br />
 				<select id="pages" name="pages[]" multiple="multiple" style="min-width: 14em; min-height: <?=count($pages)*self::line_height?>px;">
 <?php
-				foreach ( $pages as $page ) {
-					$page_id = intval( $page->ID );
-					if ( get_page_template_slug( $page_id ) == 'templates/oceanwp-calendar.php' || has_shortcode( $page->post_content, 'kursoversikt' ) || has_block( 'babyswim/kursoversikt', $page_id ) ) {
+				if ( count( $products ) ) {
+					foreach ( $pages as $page ) {
+						$page_id = intval( $page->ID );
+						if ( get_page_template_slug( $page_id ) == 'templates/oceanwp-calendar.php' || has_shortcode( $page->post_content, 'kursoversikt' ) || has_block( 'babyswim/kursoversikt', $page_id ) ) {
 ?>
 					<option value="<?=$page->ID?>"<?=selected(in_array($page_id,is_array($selected_pages_ids)?$selected_pages_ids:[]),true,false)?> title="Dato: <?=get_the_date('',$page)?>"><?=get_the_title($page)?></option>
 <?php
+						}
 					}
 				}
 ?>
 				</select>
-<?php
-//				if ( $selected_events[0] == -1 ) {
-?>
 				<br />
 				<label for="coupons">Rabattkode å ta med</label><br />
 				<select id="coupons" name="coupon" style="min-width: 14em;">
@@ -358,14 +357,23 @@ class Kursoversikt_Preorder {
 	
 	public static function send_email( string $title, array $customer_data, array $selected_customers_emails, array $selected_pages_ids, array $selected_products_ids, int $selected_coupon_id, string $text1, string $text2, bool $debug ) {
 		$current_user = wp_get_current_user();
-		$to = [];
+		add_filter( 'wp_mail_from', function( $mail_from ) {
+			$mail_from = 'post@babyswim.no';
+			return $mail_from;
+		} );
+		add_filter( 'wp_mail_from_name', function( $mail_from_name ) use ( $current_user ) {
+			$mail_from_name = $current_user->display_name;
+			return $mail_from_name;
+		} );
+//		$to  = [];
+		$tos = [];
 		foreach ( $selected_customers_emails as $customer_email ) {
-			$customer_name = $customer_data['name'];
-			$to[] = $customer_name . ' <' . $customer_email . '>';
+			$customer_name = $customer_data[ $customer_email ]['name'];
+//			$to[]  = $customer_name . ' <' . $customer_email . '>';
+			$tos[] = $customer_name . ' <' . $customer_email . '>';
 		}
-		$to       = $debug ? $current_user->user_email : implode( ',', $to );
-//		Line to be removed:
-//		$to       = $current_user->user_login == 'knutsp' ? 'knutsp+babyswim@gmail.com' : $to;
+//		$to       = $debug ? $current_user->user_email : implode( ',', $to );
+		$tos      = $debug ? [ $current_user->user_email ] : $tos;
 		$subject  = '[' . get_bloginfo(). '] ' . ( $selected_pages_ids || $selected_products_ids || $selected_coupon_id ?
 			'Tilbud om ' . $title :
 			'Viktig melding til kursdeltakere' );
@@ -399,9 +407,12 @@ class Kursoversikt_Preorder {
 		$message .= '<p>' . $text2. '</p>' . PHP_EOL;
 		$message .= '<p>-- <br />Med vennlig hilsen<br />' . $current_user->display_name . '<br />' . get_bloginfo() . '<br />'. PHP_EOL;
 		$headers = [ 'Content-type: text/html; charset=UTF-8' ];
-		$ok = wp_mail( $to, $subject, $message, $headers );
-		echo PHP_EOL, '<p>E-post ' . ( $ok ? '' : '<strong>ikke</strong> ' ) . 'sendt! &nbsp; Se <a href="admin.php?page=email-log">e-postloggen</a>.</p>';
-
+		echo PHP_EOL, '<ol>';
+		foreach ( $tos as $to ) {
+			$ok = wp_mail( $to, $subject, $message, $headers );
+			echo PHP_EOL, '<li><small>E-post til ', htmlentities( $to ), $ok ? '' : '<strong>ikke</strong> ', ' sendt!</small></li>';
+		}
+		echo PHP_EOL, '</ol><p>Se <a href="admin.php?page=email-log">e-postloggen</a>.</p>';
 	}
 
 	public static function export_email( array $customer_data, array $selected_customers_emails, array $selected_pages_ids, array $selected_products_ids, int $selected_coupon_id ) {
@@ -497,7 +508,7 @@ class Kursoversikt_Preorder {
 			if ( $ok ) {
 				if ( class_exists( 'EmailLog\Core\EmailLogger' ) ) {
 					( new \EmailLog\Core\EmailLogger )->log_email( [
-						'to'      => $customer_sms . ' ' . $customer_name,
+						'to'      => $customer_name . ' &lt;' . $customer_sms . '&gt;',
 						'subject' => 'SMS fra ' . wp_get_current_user()->display_name,
 						'message' => $message,
 					] );
