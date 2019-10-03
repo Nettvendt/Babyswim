@@ -241,14 +241,6 @@ add_action( 'admin_notices', function() {
 	WC_Admin_Notices::remove_notice( 'warning' );
 }, 9999 );
 
-add_action( 'admin_menu', function() {
-	global $twl_instance;
-	if ( ! in_array( 'administrator', wp_get_current_user()->roles ) ) {
-		remove_menu_page( TWL_CORE_OPTION_PAGE );
-		add_menu_page( __( 'Twilio', TWL_TD ), __( 'Twilio', TWL_TD ), 'manage_options', TWL_CORE_OPTION_PAGE, [ $twl_instance, 'display_tabs' ], 'dashicons-email-alt', 91 );
-	}
-}, 1001 );
-
 add_filter( 'post_thumbnail_html', function( $html, $post_id , $thumbnail_id, $size, $attr ) {
 	if ( get_post_type( $post_id ) == 'product' && empty( $html ) ) {
 		$terms = get_the_terms( $post_id, 'product_cat' );

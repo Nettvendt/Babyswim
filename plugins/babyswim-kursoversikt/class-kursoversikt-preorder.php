@@ -34,6 +34,9 @@ class Kursoversikt_Preorder {
 			$is_post = $_SERVER['REQUEST_METHOD'] == 'POST';
 			$selected_age = $is_post && isset( $_POST['age'] ) ? intval( $_POST['age'] ) : false;
 			$selected_events = $is_post && isset( $_POST['events'] ) && is_array( $_POST['events'] ) && count( $_POST['events'] ) ? array_map( 'intval', $_POST['events'] ) : false;
+			if ( $selected_events[0] <= 0 && count( $selected_events ) > 1 ) {
+				unset ( $selected_events[0] );
+			}
 	 		$selected_customers_emails = $is_post && isset( $_POST['submit'] ) && isset( $_POST['customers'] ) && is_array( $_POST['customers'] ) && count( $_POST['customers'] ) ? array_map( 'sanitize_email', $_POST['customers'] ) : false;
 			$selected_coupon_id = $is_post && isset( $_POST['submit'] ) && isset( $_POST['coupon'] ) ? intval( $_POST['coupon'] ) : false;
 			$start = Kursoversikt::get_events_from();
@@ -54,7 +57,7 @@ class Kursoversikt_Preorder {
 			$events = self::order_events( $events );
 
 			$customer_data = [];
-			if ( $selected_events && $selected_events[0] > 0 ) {
+			if ( $selected_events && ( ! isset( $selected_events[0] ) || ( isset( $selected_events[0] ) && $selected_events[0] > 0 ) ) ) {
 				foreach ( $selected_events as $selected_event ) {
 					$order_ids = Kursoversikt_Deltakere::get_order_ids_by_product( $selected_event, [ 'completed' ] );
 					foreach ( $order_ids as $order_id ) {
@@ -118,9 +121,10 @@ class Kursoversikt_Preorder {
 		<p>Lenkene du sender varer kun <?=Kursoversikt::$preview_life?> dager <span class="description">(<a href="options-general.php?page=<?=Kursoversikt::$pf?>page#preview-life">Innnstillinger for offentlig forhåndsvisning</a>).<br /></p>
 		
 		<form action="<?=admin_url(get_current_screen()->parent_file.'?page='.esc_attr($_GET['page']))?>#customers" method="post">
-		<p><label for="age">Aldersgruppe:</label>
-			<select id="age" name="age">
-				<option<?=selected($selected_age,false,false)?>>--alle aldersgrupper + reg.kunder --</option>
+			<p>
+				<label for="age">Aldersgruppe:</label>
+				<select id="age" name="age">
+					<option<?=selected($selected_age,false,false)?>>--alle aldersgrupper + reg.kunder --</option>
 <?php
 			$cats = get_terms( [
 				'taxonomy'   => Kursoversikt::$woo_event_tax,
@@ -137,13 +141,14 @@ class Kursoversikt_Preorder {
 				echo PHP_EOL, '<option value="', $age->term_id, '"', selected( intval( $age->term_id ) == $selected_age, true, false ), '>', $age->name, '</option>';
 			}
 ?>
-			</select>
-			<button type="submit" style="vertical-align: bottom;">Filtrer tidligere kurs</button>
-		</p>
-		<p><label for="event" style="vertical-align: top;">Vis kunder som har deltatt på følgende kurs startet etter <?=date_i18n('d.m.Y',$start)?> <small>(ca. ant. påmeld.)</small>:<br /></label>
-			<select id="event" name="events[]" multiple="multiple" style="min-height: <?=(count($events)+1)*self::line_height?>px;">
-				<option<?=selected(empty($selected_events)||$selected_events[0]== 0,true,false)?>>-- kun registrerte kunder og instruktører --</option>
-				<option<?=selected($selected_events[0]==-1,true,false)?> value="-1">-- kun instruktører --</option>
+				</select>
+				<button type="submit" style="vertical-align: bottom;">Filtrer tidligere kurs</button>
+			</p>
+			<p>
+				<label for="event" style="vertical-align: top;">Vis kunder som har deltatt på følgende kurs startet etter <?=date_i18n('d.m.Y',$start)?> <small>(ca. ant. påmeld.)</small>:<br /></label>
+				<select id="event" name="events[]" multiple="multiple" style="min-height: <?=(count($events)+1)*self::line_height?>px;">
+					<option<?=selected(empty($selected_events)||$selected_events[0]===0,true,false)?>>-- kun registrerte kunder og instruktører --</option>
+					<option<?=selected($selected_events[0]==-1,true,false)?> value="-1">-- kun instruktører --</option>
 <?php
 			foreach ( $events as $event ) {
 				$terms = get_the_terms( $event, Kursoversikt::$woo_event_tax );
@@ -155,19 +160,19 @@ class Kursoversikt_Preorder {
 				}
 			}
 ?>
-			</select>
-			<button type="submit" style="vertical-align: bottom;">Filtrer kunder</button>
-			<br clear="left" />(shift eller ctrl klikk for å velge flere eller for å oppheve et valg)<br />
-			<input type="hidden" name="customers[]" value="<?=implode(',',is_array($selected_customers_emails)?$selected_customers_emails:[])?>" />
-		</p></form>
+				</select>
+				<button type="submit" style="vertical-align: bottom;">Filtrer kunder</button>
+				<br clear="left" />(shift eller ctrl klikk for å velge flere eller for å oppheve et valg)<br />
+			</p>
+		</form>
 <?php
 			$customers_count = count( $customer_data );
 			if ( $customers_count ) {
 ?>
 		<form action="<?=admin_url(get_current_screen()->parent_file.'?page='.esc_attr($_GET['page']))?>#submit" method="post">
 			<p style="float: left; padding-right: 1em;">
-			<label for="customers" title="Antall: <?=$customers_count?>.">Kunder/instruktører (mottakere)</label><br />
-			<select id="customers" multiple="multiple" name="customers[]" style="min-height: <?=(count($customer_data)+1)*self::line_height?>px; min-width: 14em;">
+				<label for="customers" title="Antall: <?=$customers_count?>.">Kunder/instruktører (mottakere)</label><br />
+				<select id="customers" multiple="multiple" name="customers[]" style="min-height: <?=(count($customer_data)+1)*self::line_height?>px; min-width: 14em;">
 <?php
 				$selected_pages_ids = isset( $_POST['pages'] ) ? array_map( 'intval', $_POST['pages'] ) : false;
 				$selected_products_ids  = $is_post && isset( $_POST['submit'] ) && isset( $_POST['products' ] ) && is_array( $_POST['products' ] ) && count( $_POST['products' ] ) ? array_map( 'intval', $_POST['products' ] ) : false;
@@ -177,33 +182,33 @@ class Kursoversikt_Preorder {
 					$order_count    = $customer['count'];
 					$style          = $order_count ? '' : ' style="background-color: lightgray;"';
 ?>
-				<option value="<?=$customer_email?>"<?=selected(in_array($customer_email,is_array($selected_customers_emails)?$selected_customers_emails:[]),true,false)?> title="E-post:  <?=$customer_email?>, mobil: <?=$customer_phone?>, ordre: <?=$order_count?>."<?=$style?>><?=$customer_name?></option>
+					<option value="<?=$customer_email?>"<?=selected(in_array($customer_email,is_array($selected_customers_emails)?$selected_customers_emails:[]),true,false)?> title="E-post:  <?=$customer_email?>, mobil: <?=$customer_phone?>, ordre: <?=$order_count?>."<?=$style?>><?=$customer_name?></option>
 <?php
 				}
 ?>
-			</select></p>
-
+				</select>
+			</p>
 			<p style="float: left; padding-right: 1em;">
-			<label for="pages" title="Antall: <?=count($pages)?>.">Oversikt-side (å ta med lenke til)</label><br />
-			<select id="pages" name="pages[]" multiple="multiple" style="min-width: 14em; min-height: <?=count($pages)*self::line_height?>px;">
+				<label for="pages" title="Antall: <?=count($pages)?>.">Oversikt-side (å ta med lenke til)</label><br />
+				<select id="pages" name="pages[]" multiple="multiple" style="min-width: 14em; min-height: <?=count($pages)*self::line_height?>px;">
 <?php
 				foreach ( $pages as $page ) {
 					$page_id = intval( $page->ID );
 					if ( get_page_template_slug( $page_id ) == 'templates/oceanwp-calendar.php' || has_shortcode( $page->post_content, 'kursoversikt' ) || has_block( 'babyswim/kursoversikt', $page_id ) ) {
 ?>
-				<option value="<?=$page->ID?>"<?=selected(in_array($page_id,is_array($selected_pages_ids)?$selected_pages_ids:[]),true,false)?> title="Dato: <?=get_the_date('',$page)?>"><?=get_the_title($page)?></option>
+					<option value="<?=$page->ID?>"<?=selected(in_array($page_id,is_array($selected_pages_ids)?$selected_pages_ids:[]),true,false)?> title="Dato: <?=get_the_date('',$page)?>"><?=get_the_title($page)?></option>
 <?php
 					}
 				}
 ?>
-			</select>
+				</select>
 <?php
 //				if ( $selected_events[0] == -1 ) {
 ?>
-			<br />
-			<label for="coupons">Rabattkode å ta med</label><br />
-			<select id="coupons" name="coupon" style="min-width: 14em;">
-				<option <?=selected($selected_coupon_id,false,false)?>> -- velg rabatt -- </option>
+				<br />
+				<label for="coupons">Rabattkode å ta med</label><br />
+				<select id="coupons" name="coupon" style="min-width: 14em;">
+					<option <?=selected($selected_coupon_id,false,false)?>> -- velg rabatt -- </option>
 <?php
 					$coupons = get_posts( [ 'post_type' => 'shop_coupon', 'posts_per_page' => -1 ] );
 					foreach ( $coupons as $coupon ) {
@@ -212,36 +217,40 @@ class Kursoversikt_Preorder {
 						$unit      = get_post_meta( $coupon_id, 'discount_type', true ) == 'percent' ? '%' : ' kr';
 						$value    .= $unit;
 ?>
-				<option value="<?=$coupon_id?>"<?=selected($selected_coupon_id,$coupon_id,false)?> title="<?=get_the_title($coupon_id)?>"><?=mb_substr(esc_html(get_the_excerpt($coupon_id)),0,16)?>: <code><?=$value?></code></option>
+					<option value="<?=$coupon_id?>"<?=selected($selected_coupon_id,$coupon_id,false)?> title="<?=get_the_title($coupon_id)?>"><?=mb_substr(esc_html(get_the_excerpt($coupon_id)),0,16)?>: <code><?=$value?></code></option>
 <?php
 					}
 ?>
-			</select>
+				</select>
 <?php
 //				}
 ?>
 			</p>
 			<p style="float: left;">
-			<label for="products" title="Antall: <?=count($products)?>.">Alle ventende enkeltkurs (å ta med lenke til)</label><br />
-			<select id="products" multiple="multiple" name="products[]" style="min-width: 160px; min-height: <?=(count($products)+1)*self::line_height?>px;">
+				<label for="products" title="Antall: <?=count($products)?>.">Alle ventende enkeltkurs (å ta med lenke til)</label><br />
+				<select id="products" multiple="multiple" name="products[]" style="min-width: 160px; min-height: <?=(count($products)+1)*self::line_height?>px;">
 <?php
 				foreach ( $products as $product ) {
 					$product_id = intval( $product->ID );
 					$count = count( Kursoversikt_Deltakere::get_order_ids_by_product( $product_id ) );
 					$disab = ! wc_get_product( $product_id )->is_in_stock();
 ?>
-				<option value="<?=$product_id?>"<?=selected(in_array($product_id,is_array($selected_products_ids)?$selected_products_ids:[]),true,false)?><?=disabled($disab)?> title="<?=$disab?'Fullt':'Ledig'?>."><?=get_the_title($product)?> (<?=$count?>)</option>
+					<option value="<?=$product_id?>"<?=selected(in_array($product_id,is_array($selected_products_ids)?$selected_products_ids:[]),true,false)?><?=disabled($disab)?> title="<?=$disab?'Fullt':'Ledig'?>."><?=get_the_title($product)?> (<?=$count?>)</option>
 <?php
 				}
 ?>
-			</select></p>
-			<p style="clear: left"/>(shift eller ctrl klikk for å velge flere eller for å oppheve et valg) &nbsp; &nbsp; &nbsp; Det er bare <em>upubliserte</em> <small>(status: <!--kladd, -->ventende eller planlagt)</small> sider og kurs som vises her.</p><p></p>
-			<label for="text1">Ekstra tekst over lenkene:</label><br />
-			<textarea id="text1" name="text1" cols="90" rows="1"><?=isset($_POST['text1'])?esc_textarea($_POST['text1']):''?></textarea>
-			<br clear="left" />
-			<label for="text2">Ekstra tekst under lenkene:</label><br />
-			<textarea id="text2" name="text2" cols="90" rows="1"><?=isset($_POST['text2'])?esc_textarea($_POST['text2']):''?></textarea>
-			<p><input id="debug" type="checkbox" name="debug"<?=checked(WP_DEBUG,true,false)?> /><label for="debug" style="vertical-align: top;">kun test <small>(én e-post eller én SMS sendes til deg selv, uansett valgt(e) mottaker(e))</small></label></p>
+				</select>
+			</p>
+			<p style="clear: left"/>(shift eller ctrl klikk for å velge flere eller for å oppheve et valg) &nbsp; &nbsp; &nbsp; Det er bare <em>upubliserte</em>		<small>(status: <!--kladd, -->ventende eller planlagt)</small> sider og kurs som vises her.</p><p></p>
+				<label for="text1">Ekstra tekst over lenkene:</label><br />
+				<textarea id="text1" name="text1" cols="90" rows="1"><?=isset($_POST['text1'])?esc_textarea($_POST['text1']):''?></textarea>
+				<br clear="left" />
+				<label for="text2">Ekstra tekst under lenkene:</label><br />
+				<textarea id="text2" name="text2" cols="90" rows="1"><?=isset($_POST['text2'])?esc_textarea($_POST['text2']):''?></textarea>
+			</p>
+			<p>
+				<input id="debug" type="checkbox" name="debug"<?=checked(WP_DEBUG,true,false)?> /><label for="debug" style="vertical-align: top;">kun test <small>(én e-post eller én SMS sendes til deg selv, uansett valgt(e) mottaker(e))</small></label>
+			</p>
 			<p>
 <?php
 				submit_button( $export_text, 'large', 'submit', false );
@@ -258,7 +267,13 @@ class Kursoversikt_Preorder {
 				}
  ?>
 				<input type="hidden" name="age" value="<?=$selected_age?>" />
-				<input type="hidden" name="events[]" value="<?=implode(',',is_array($selected_events)?$selected_events:[])?>" />
+<?php
+	 			foreach ( $selected_events as $selected_event ) {
+?>
+				<input type="hidden" name="events[]" value="<?=$selected_event?>" />
+<?php
+				}
+?>
 			</p>
 		</form>
 		<br />
@@ -270,9 +285,9 @@ class Kursoversikt_Preorder {
 						foreach ( $selected_customers_emails as $customer_email ) {
 							$customer_name  = $customer_data[ $customer_email ]['name'];
 							$customer_phone = $customer_data[ $customer_email ]['phone'];
-							$all_emails[] = '<a href="mailto:' . ( $debug ? $current_user->user_email : $customer_email ) . '" title="Telefon: ' . $customer_phone . '">' . $customer_name . '</a>' . ( empty( $customer_phone ) ? ' &nbsp; <small>(OBS: mobilnummer mangler)</small>' : '');
+							$all_emails[] = '<a href="mailto:' . ( $debug ? $current_user->user_email : $customer_email ) . '" title="Telefon: ' . $customer_phone . '">' . $customer_name . '</a>'/* . ( empty( $customer_phone ) ? ' &nbsp; <small>(OBS: mobilnummer mangler)</small>' : '')*/;
 						}
-						echo implode( ',', $all_emails ), '</h3>';
+						echo implode( ', ', $all_emails ), '</h3>';
 						$subject = $selected_pages_ids || $selected_products_ids ? 'Tilbud om ' . strtolower( $title ) : 'Melding til kursdeltakere';
 ?>
 		<h4>Emne: [<?=get_bloginfo()?>] <?=$subject?></h4>
