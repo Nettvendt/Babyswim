@@ -741,21 +741,24 @@ class Kursoversikt_Deltakere {
 		}
 		echo '</p>';
 		if ( current_user_can( 'edit_shop_orders' ) ) {
-			echo PHP_EOL, '<p title="Se.">Tilby <a href="index.php?page=preorder" title="Gå til.">Forhåndsbestilling/e-post/SMS</a></p>';
-			echo PHP_EOL, '<p title="Se.">Se <a href="admin.php?page=email-log" title="Vis loggen.">E-postlogg</a> &nbsp; <a href="admin.php?page=twilio-options&tab=logs" title="Vis loggen.">SMS-logg</a>.</p>';
+			echo PHP_EOL, '<p title="Se.">Tilby <a href="index.php?page=preorder" title="Gå til.">forhåndsbestilling/e-post/SMS</a></p>';
+		}
+		if ( current_user_can( 'manage_email_logs' ) ) {
+			echo PHP_EOL, '<p title="Se.">Se <a href="admin.php?page=email-log" title="Vis loggen.">e-post/SMS-logg</a><!-- &nbsp; <a href="admin.php?page=twilio-options&tab=logs" title="Vis loggen.">SMS-logg</a-->.</p>';
 		}
 		if ( current_user_can( 'edit_users' ) ) {
-			echo PHP_EOL, '<p title="Se.">Se <a href="users.php?role=customer&orderby=registered&order=desc" title="Vis kunder.">Siste registerte kunder</a>.</p>';
+			echo PHP_EOL, '<p title="Se.">Se <a href="users.php?role=customer&orderby=registered&order=desc" title="Vis kunder.">siste registerte kunder</a>.</p>';
 		}
 		if ( current_user_can( 'read_participants' ) ) {
-			echo PHP_EOL, '<p title="Se.">Få <a href="index.php?page=deltakere" title="Vis listene.">Instruktørlister for utskrift</a>.</p>';
+			echo PHP_EOL, '<p title="Se.">Få ut <a href="index.php?page=deltakere" title="Vis listene.">instruktørlister for utskrift</a>.</p>';
 		}
 		if ( current_user_can( 'manage_options' ) ) {
 			echo PHP_EOL, '<p title="Rydd.">Tøm <a href="admin.php?page=wc-status&tab=tools" title="Til statusverktøy.">kundesesjoner (fjern alle ukjøpte handlekurver)</a>.</p>';
-			echo PHP_EOL, '<p title="Innstill.">Juster tiden <a href="admin.php?page=wc-settings&tab=products&section=inventory#woocommerce_hold_stock_minutes" title="Vis innstilling for å beholde reserverte plasser."> før <strong title="Venter på betaling."><em>ventende <span title="Ordre.">påmeldinger</span></em></strong> automatisk blir kansellert</a>.</p>';
+			echo PHP_EOL, '<p title="Innstill.">Juster <a href="admin.php?page=wc-settings&tab=products&section=inventory#woocommerce_hold_stock_minutes" title="Vis innstilling for å beholde reserverte plasser.">tiden før <strong title="Venter på betaling."><em>ventende <span title="Ordre.">påmeldinger</span></em></strong> automatisk blir kansellert</a>.</p>';
 			if ( class_exists( 'WC_Cart_Stock_Reducer' ) ) {
-				echo PHP_EOL, '<p title="Innstill.">Juster tiden <a href="admin.php?page=wc-settings&tab=integration#woocommerce_woocommerce-cart-stock-reducer_expire_time" title="Vis innstilling.">å holde på reserverte <span title="Ordre.">påmeldinger</span> i <strong><em>handlekurven</em></strong></a>.</p>';
+				echo PHP_EOL, '<p title="Innstill.">Juster <a href="admin.php?page=wc-settings&tab=integration#woocommerce_woocommerce-cart-stock-reducer_expire_time" title="Vis innstilling.">tiden å holde på reserverte <span title="Ordre.">påmeldinger</span> i <strong><em>handlekurven</em></strong></a>.</p>';
 			}
+			echo PHP_EOL, '<p title="Innstill.">Juster <a href="options-general.php?page=', Kursoversikt::$pf, 'page#', Kursoversikt::$pf, 'preview" title="Vis innstilling for varighet av forhåndsvisningslenker.">tiden før lenker til forhåndsvisning blir ugyldige</a>.</p>';
 		}
 	}
 	

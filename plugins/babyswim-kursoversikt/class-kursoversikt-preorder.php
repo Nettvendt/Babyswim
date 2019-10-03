@@ -35,7 +35,7 @@ class Kursoversikt_Preorder {
 			$selected_age = $is_post && isset( $_POST['age'] ) ? intval( $_POST['age'] ) : false;
 			$selected_events = $is_post && isset( $_POST['events'] ) && is_array( $_POST['events'] ) && count( $_POST['events'] ) ? array_map( 'intval', $_POST['events'] ) : false;
 	 		$selected_customers_emails = $is_post && isset( $_POST['submit'] ) && isset( $_POST['customers'] ) && is_array( $_POST['customers'] ) && count( $_POST['customers'] ) ? array_map( 'sanitize_email', $_POST['customers'] ) : false;
-			$selected_coupon = $is_post && isset( $_POST['submit'] ) && isset( $_POST['coupon'] ) ? intval( $_POST['coupon'] ) : false;
+			$selected_coupon_id = $is_post && isset( $_POST['submit'] ) && isset( $_POST['coupon'] ) ? intval( $_POST['coupon'] ) : false;
 			$start = Kursoversikt::get_events_from();
 			$terms = [ $selected_age ? $selected_age : Kursoversikt::$woo_event_cat[ Kursoversikt::$woo_event_tax ] ];
 			$tax_query = [
@@ -198,12 +198,12 @@ class Kursoversikt_Preorder {
 ?>
 			</select>
 <?php
-				if ( $selected_events[0] == -1 ) {
+//				if ( $selected_events[0] == -1 ) {
 ?>
 			<br />
-			<label for="coupons">Rabattkode å ta med<br /><small>(virker ikke ennå, ref. KS)</small></label><br />
+			<label for="coupons">Rabattkode å ta med</label><br />
 			<select id="coupons" name="coupon" style="min-width: 14em;">
-				<option <?=selected($selected_coupon,false,false)?>> -- velg rabatt -- </option>
+				<option <?=selected($selected_coupon_id,false,false)?>> -- velg rabatt -- </option>
 <?php
 					$coupons = get_posts( [ 'post_type' => 'shop_coupon', 'posts_per_page' => -1 ] );
 					foreach ( $coupons as $coupon ) {
@@ -212,13 +212,13 @@ class Kursoversikt_Preorder {
 						$unit      = get_post_meta( $coupon_id, 'discount_type', true ) == 'percent' ? '%' : ' kr';
 						$value    .= $unit;
 ?>
-				<option value="<?=$coupon_id?>"<?=selected($selected_coupon,$coupon_id,false)?>><?=mb_substr(esc_html(get_the_excerpt($coupon_id)),0,16)?>: <code><?=$value?></code></option>
+				<option value="<?=$coupon_id?>"<?=selected($selected_coupon_id,$coupon_id,false)?> title="<?=get_the_title($coupon_id)?>"><?=mb_substr(esc_html(get_the_excerpt($coupon_id)),0,16)?>: <code><?=$value?></code></option>
 <?php
 					}
 ?>
 			</select>
 <?php
-				}
+//				}
 ?>
 			</p>
 			<p style="float: left;">
@@ -249,11 +249,12 @@ class Kursoversikt_Preorder {
 				submit_button( 'Forhåndsvis melding', 'primary', 'submit', false );
 				echo ' &nbsp; ';
 				submit_button( $email_text,  'large', 'submit', false );
-				if ( function_exists( 'twl_send_sms' ) ) {
+//				if ( function_exists( 'twl_send_sms' ) ) {
+				if ( function_exists( 'wc_twilio_sms' ) ) {
 					echo ' &nbsp; ';
 					submit_button( $sms_text, 'large', 'submit', false );
 					echo ' &nbsp; ';
-					echo PHP_EOL, '<a href="admin.php?page=twilio-options&tab=test">Til testsending av SMS-melding til valgt nr</a> <small>(må ha en konto med betalt pakke hos Twilio)</small>';
+					echo PHP_EOL, '<a href="admin.php?page=wc-settings&tab=twilio_sms#wc_twilio_sms_test_mobile_number">Til testsending av SMS-melding til valgt nr</a>.';
 				}
  ?>
 				<input type="hidden" name="age" value="<?=$selected_age?>" />
@@ -309,6 +310,11 @@ class Kursoversikt_Preorder {
 		<p>Velkommen til kurs også neste sesong!</p>
 <?php
 						}
+						if ( $selected_coupon_id ) {
+?>
+		<p>Rabattkode: <code><?=esc_attr(get_post($selected_coupon_id)->post_title)?></code></p>
+<?php
+						}
 ?>
 		<p><?=esc_html($_POST['text2'])?></p>
 		<p>Med vennlig hilsen<br />
@@ -319,11 +325,11 @@ class Kursoversikt_Preorder {
 <?php
 					}
 					if ( isset( $_POST['submit'] ) && $_POST['submit'] == $email_text ) {
-						self::send_email( strtolower( $title ), $customer_data, $selected_customers_emails ? $selected_customers_emails : [], $selected_pages_ids ? $selected_pages_ids : [], $selected_products_ids ? $selected_products_ids : [], esc_html( $_POST['text1'] ), esc_html( $_POST['text2'] ), $debug );
+						self::send_email( strtolower( $title ), $customer_data, $selected_customers_emails ? $selected_customers_emails : [], $selected_pages_ids ? $selected_pages_ids : [], $selected_products_ids ? $selected_products_ids : [], $selected_coupon_id, esc_html( $_POST['text1'] ), esc_html( $_POST['text2'] ), $debug );
 					} elseif ( isset( $_POST['submit'] ) && $_POST['submit'] == $export_text ) {
-						self::export_email( $customer_data, $selected_customers_emails ? $selected_customers_emails : [], $selected_pages_ids ? $selected_pages_ids : [], $selected_products_ids ? $selected_products_ids : [] );
+						self::export_email( $customer_data, $selected_customers_emails ? $selected_customers_emails : [], $selected_pages_ids ? $selected_pages_ids : [], $selected_products_ids ? $selected_products_ids : [], $selected_coupon_id );
 					} elseif ( isset( $_POST['submit'] ) && $_POST['submit'] == $sms_text ) {
-						self::send_sms( strtolower( $title ), $customer_data, $selected_customers_emails ? $selected_customers_emails : [], $selected_pages_ids ? $selected_pages_ids : [], $selected_products_ids ? $selected_products_ids : [], esc_html( $_POST['text1'] ), esc_html( $_POST['text2'] ), $debug );
+						self::send_sms( strtolower( $title ), $customer_data, $selected_customers_emails ? $selected_customers_emails : [], $selected_pages_ids ? $selected_pages_ids : [], $selected_products_ids ? $selected_products_ids : [], $selected_coupon_id, esc_html( $_POST['text1'] ), esc_html( $_POST['text2'] ), $debug );
 					} 
 				}
 ?>
@@ -335,7 +341,7 @@ class Kursoversikt_Preorder {
 		}
 	}
 	
-	public static function send_email( string $title, array $customer_data, array $selected_customers_emails, array $selected_pages_ids, array $selected_products_ids, string $text1, string $text2, bool $debug ) {
+	public static function send_email( string $title, array $customer_data, array $selected_customers_emails, array $selected_pages_ids, array $selected_products_ids, int $selected_coupon_id, string $text1, string $text2, bool $debug ) {
 		$current_user = wp_get_current_user();
 		$to = [];
 		foreach ( $selected_customers_emails as $customer_email ) {
@@ -345,7 +351,9 @@ class Kursoversikt_Preorder {
 		$to       = $debug ? $current_user->user_email : implode( ',', $to );
 //		Line to be removed:
 //		$to       = $current_user->user_login == 'knutsp' ? 'knutsp+babyswim@gmail.com' : $to;
-		$subject  = '[' . get_bloginfo(). '] ' . ( $selected_pages_ids || $selected_products_ids ? 'Tilbud om ' . $title : 'Melding til kursdeltakere' );
+		$subject  = '[' . get_bloginfo(). '] ' . ( $selected_pages_ids || $selected_products_ids || $selected_coupon_id ?
+			'Tilbud om ' . $title :
+			'Viktig melding til kursdeltakere' );
 		$message  = '<p>Kjære kunde og kursdeltaker</p>' . PHP_EOL;
 		$message .= '<p>' . $text1 . '</p>' . PHP_EOL;
 		if ( $selected_pages_ids || $selected_products_ids ) {
@@ -370,6 +378,9 @@ class Kursoversikt_Preorder {
 			$message .= '<p>Obs: Lenken' . ( $count == 1 ? '' : 'e' ) . ' varer kun ' . Kursoversikt::$preview_life . ' dager.</p>';
 			$message .= '<p>Velkommen til kurs hos oss også neste sesong!</p>' . PHP_EOL;
 		}
+		if ( $selected_coupon_id ) {
+			$message .= '<p>Rabattkode: ' . get_post( $selected_coupon_id )->post_title .'</p>'. PHP_EOL;
+		}
 		$message .= '<p>' . $text2. '</p>' . PHP_EOL;
 		$message .= '<p>-- <br />Med vennlig hilsen<br />' . $current_user->display_name . '<br />' . get_bloginfo() . '<br />'. PHP_EOL;
 		$headers = [ 'Content-type: text/html; charset=UTF-8' ];
@@ -378,7 +389,7 @@ class Kursoversikt_Preorder {
 
 	}
 
-	public static function export_email( array $customer_data, array $selected_customers_emails, array $selected_pages_ids, array $selected_products_ids ) {
+	public static function export_email( array $customer_data, array $selected_customers_emails, array $selected_pages_ids, array $selected_products_ids, int $selected_coupon_id ) {
 		$all_emails = [];
 		foreach ( $selected_customers_emails as $customer_email ) {
 			$customer_name = $customer_data[ $customer_email ]['name'];
@@ -389,7 +400,7 @@ class Kursoversikt_Preorder {
 		}
 		echo PHP_EOL, '<p><strong>Forslag til emnefelt:</strong> Kopier til til/emnefeltet i din egen app:<pre style="border: solid black 1px; padding: .5em; background-color: white; width: 40%;">[', get_bloginfo(), '] Melding til kursdeltakere</pre></p>';
 		echo PHP_EOL, '<p><small>skriv så din egen e-postmelding.</small></p>';
-		if ( $selected_pages_ids || $selected_products_ids ) {
+		if ( $selected_pages_ids || $selected_products_ids || $selected_coupon_id ) {
 			echo PHP_EOL, '<p>Valgte lenker å ta med i meldingen:</p>';
 			echo PHP_EOL, '<pre style="border: solid black 1px; padding: .5em; background-color: white; width: 100%;">';
 			if ( $selected_pages_ids ) {
@@ -402,26 +413,29 @@ class Kursoversikt_Preorder {
 					echo Webfacing_Public_Post_Preview::get_preview_link( get_post( $product_id ) ), PHP_EOL;
 				}
 			}
+			if ( $selected_coupon_id ) {
+				echo 'Rabattkode: <code>' . get_post( $selected_coupon_id )->post_title . '</code>' . PHP_EOL;
+			}
 			echo PHP_EOL, '</pre>';
 		}
 	}
 	
-	public static function send_sms( string $title, array $customer_data, array $selected_customers_emails, array $selected_pages_ids, array $selected_products_ids, string $text1, string $text2, bool $debug ) {
+	public static function send_sms( string $title, array $customer_data, array $selected_customers_emails, array $selected_pages_ids, array $selected_products_ids, $selected_coupon_id, string $text1, string $text2, bool $debug ) {
 		$current_user = wp_get_current_user();
-		$selected_customers_emails = $debug ? [ $current_user->user_email ] : $selected_customers_emails;
-//		Line to be removed:
-//		$selected_customers_emails = $current_user->user_login == 'knutsp' ? [ 'knut@sparhell.no' ] : $selected_customers_emails;
+//		$selected_customers_emails = $debug ? [ $current_user->user_email ] : $selected_customers_emails;
 		$sent = 0;
 		$fail = 0;
 		foreach ( $selected_customers_emails as $customer_email ) {
 			$customer_name = $customer_data[ $customer_email ]['name'];
-			$customer_sms = $customer_data[ $customer_email ]['phone'];
+			$customer_sms = $debug ? get_user_meta( get_current_user_id(), 'billing_phone', true ) : $customer_data[ $customer_email ]['phone'];
 			$customer_sms = str_replace( ' ', '', $customer_sms );
 			$customer_sms = strlen( $customer_sms ) < 10 ? '47' . $customer_sms : $customer_sms;
 			$customer_sms = $customer_sms[0] != '+' ? '+' . $customer_sms : $customer_sms;
 			$customer_sms = strlen( $customer_sms ) < 11 ? false : $customer_sms;
 			$message  = '';
-			$message .= PHP_EOL . ( $selected_pages_ids || $selected_products_ids ? 'Tilbud fra ' . get_bloginfo() . ' om ' . $title : 'Viktig melding til kursdeltakere' ) . ':' . PHP_EOL;
+			$message .= PHP_EOL . ( $selected_pages_ids || $selected_products_ids || $selected_coupon_id ?
+				'Tilbud fra ' . get_bloginfo() . ' om ' . $title :
+				'Viktig melding til kursdeltakere' ) . ':' . PHP_EOL;
 			$message .= PHP_EOL . 'Hei ' . $customer_name . PHP_EOL;
 			$message .= $text1 ? PHP_EOL . $text1 . PHP_EOL : '';
 			if ( $selected_pages_ids || $selected_products_ids ) {
@@ -437,24 +451,42 @@ class Kursoversikt_Preorder {
 				$message .= PHP_EOL . 'Obs: Lenken' . ( $count == 1 ? '' : 'e' ) . ' varer kun ' . Kursoversikt::$preview_life . ' dager.';
 				$message .= PHP_EOL . 'Velkommen til kurs hos oss også neste sesong!' . PHP_EOL;
 			}
+			if ( $selected_coupon_id ) {
+				$message .= PHP_EOL . 'Rabattkode: ' . get_post( $selected_coupon_id )->post_title . PHP_EOL;
+			}
 			$message .= $text2 ? PHP_EOL . $text2 . PHP_EOL : '';
 			$message .= PHP_EOL . 'Med vennlig hilsen' . PHP_EOL . $current_user->display_name . PHP_EOL . get_bloginfo();
-			$args = [
-				'number_to'   => $customer_sms,
-				'message'     => $message,
-				'logging'     => 1,
+//			$args = [
+//				'number_to'   => $customer_sms,
+//				'message'     => $message,
+//				'logging'     => 1,
 //				'url_shorten' => 1,
-			];
+//			];
 			if ( $customer_sms ) {
-				$response = twl_send_sms( $args );
-				$ok = ! is_wp_error( $response );
-				$err = ! $ok ? $response->errors['api-error'][0] : '';
+//				$response = twl_send_sms( $args );
+				try {
+					$response = wc_twilio_sms()->get_api()->send( $customer_sms, $message, 'NO' );
+					$ok = true;
+					$err = '';
+				} catch ( Exception $e ) {
+					$ok = false;
+					$err = $e->getMessage();
+				}
+//				$ok  = ! is_wp_error( $response );
+//				$err = ! $ok ? $response->errors['api-error'][0] : '';
 			} else {
 				$ok = false;
 				$err = 'Mobilnummer mangler eller har feil format';
 			}
 			echo PHP_EOL, '<ol>';
 			if ( $ok ) {
+				if ( class_exists( 'EmailLog\Core\EmailLogger' ) ) {
+					( new \EmailLog\Core\EmailLogger )->log_email( [
+						'to'      => $customer_sms . ' ' . $customer_name,
+						'subject' => 'SMS fra ' . wp_get_current_user()->display_name,
+						'message' => $message,
+					] );
+				}
 				$sent++;
 			} else {
 				$fail++;
@@ -463,7 +495,7 @@ class Kursoversikt_Preorder {
 			echo PHP_EOL, '<ol>';
 		}
 		echo PHP_EOL, '<p>', $sent, ' SMS', $sent != 1 ? 'er' : '', ' sendt', $fail ? ', <span style="color: orangered;">og ' . $fail . ' fikk feil</span>' : '';
-		echo PHP_EOL, $sent ? ' &nbsp; Se <a href="admin.php?page=twilio-options&tab=logs">SMS-loggen</a>.' : '';
+		echo PHP_EOL, $sent ? ' &nbsp; Se <a href="admin.php?page=email-log">E-post/SMS-loggen</a>.' : '';
 		echo '</<p>';
 	}
 

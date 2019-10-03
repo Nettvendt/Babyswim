@@ -345,9 +345,11 @@ class Kursoversikt {
 				} elseif ( $trans == 'Om du allerede har registrert deg, vennligst oppgi kontodetaljene i feltene nedenfor. Er du en ny kunde, vennligst gå til seksjonen Fakturering.' && is_checkout() ) {
 					$trans = 'Om du allerede har registrert deg, vennligst oppgi kontodetaljene i feltene nedenfor. Er du en ny kunde, vennligst trykk på knappen "Jeg har ikke en konto".';
 				}
-			} elseif ( $domain == 'members' ) {
-				if ( $text == 'Roles' ) {
-					$trans = 'Roller';
+			} elseif ( $domain == 'email-log' ) {
+				if ( $trans == 'E-poster' ) {
+					$trans = 'E-poster/SMS';
+				} elseif ( $text == 'Email Logs' ) {
+					$trans = 'E-post/SMS-logg';
 				}
 			}
 			return $trans;
