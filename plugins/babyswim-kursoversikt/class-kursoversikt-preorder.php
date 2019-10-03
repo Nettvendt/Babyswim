@@ -227,7 +227,7 @@ class Kursoversikt_Preorder {
 ?>
 			</p>
 			<p style="float: left;">
-				<label for="products" title="Antall: <?=count($products)?>.">Alle ventende enkeltkurs (å ta med lenke til)</label><br />
+				<label for="products" title="Antall: <?=count($products)?>.">Ventende enkeltkurs (å ta med lenke til)</label><br />
 				<select id="products" multiple="multiple" name="products[]" style="min-width: 160px; min-height: <?=(count($products)+1)*self::line_height?>px;">
 <?php
 				foreach ( $products as $product ) {
