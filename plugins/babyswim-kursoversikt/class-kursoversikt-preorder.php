@@ -411,6 +411,7 @@ class Kursoversikt_Preorder {
 		foreach ( $tos as $to ) {
 			$ok = wp_mail( $to, $subject, $message, $headers );
 			echo PHP_EOL, '<li><small>E-post til ', htmlentities( $to ), $ok ? '' : '<strong>ikke</strong> ', ' sendt!</small></li>';
+			sleep( 1 );
 		}
 		echo PHP_EOL, '</ol><p>Se <a href="admin.php?page=email-log">e-postloggen</a>.</p>';
 	}
