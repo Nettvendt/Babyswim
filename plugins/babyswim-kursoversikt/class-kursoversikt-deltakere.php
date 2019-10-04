@@ -101,6 +101,7 @@ class Kursoversikt_Deltakere {
 	<div id="load-text" style="display: none;">Et øyeblikk&hellip;</div>
 	<div id="content" class="wrap">
 		<h2><?=$title?></h2>
+		<h3>Deltakerliste kan også velges direkte fra <a href="edit.php?post_type=product"><?=get_post_type_labels(get_post_type_object('product'))->menu_name?></a>, kolonne &laquo;<abbr title="Instruktør">In</abbr>&raquo;</h3>
 		<div role="tablist" aria-label="<?=get_admin_page_title()?>">
 <?php
 		$is_post = is_Admin() && current_user_can( 'read_participants' ) && $_SERVER['REQUEST_METHOD'] === 'POST';

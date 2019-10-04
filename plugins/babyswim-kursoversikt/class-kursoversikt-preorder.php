@@ -120,7 +120,7 @@ class Kursoversikt_Preorder {
 		<h2>Velg kunder og enten upublisert kursoversiktside eller enkeltvise upubliserte kurs å sende kunder en &laquo;magisk&raquo; lenke til</h2>
 		<p>Lenkene du sender varer kun <?=Kursoversikt::$preview_life?> dager <span class="description">(<a href="options-general.php?page=<?=Kursoversikt::$pf?>page#preview-life">Innnstillinger for offentlig forhåndsvisning</a>).<br /></p>
 		
-		<form action="<?=admin_url(get_current_screen()->parent_file.'?page='.esc_attr($_GET['page']))?>#customers" method="post">
+		<form action="<?=admin_url(get_current_screen()->parent_file.'?page='.esc_attr($_GET['page']))?><?=$selected_events?'#customers':''?>" method="post">
 			<p>
 				<label for="age">Aldersgruppe:</label>
 				<select id="age" name="age">
@@ -189,7 +189,7 @@ class Kursoversikt_Preorder {
 				</select>
 			</p>
 			<p style="float: left; padding-right: 1em;">
-				<label for="pages" title="Antall: <?=count($pages)?>.">Oversikt-side (å ta med lenke til)</label><br />
+				<label for="pages" title="Ventende kurs. Antall sider: <?=count($pages)?>.">Oversikt-side<?=count($pages)!=1?'r':''?> (å ta med lenke til)</label><br />
 				<select id="pages" name="pages[]" multiple="multiple" style="min-width: 14em; min-height: <?=count($pages)*self::line_height?>px;">
 <?php
 				if ( count( $products ) ) {
