@@ -32,6 +32,43 @@ class Webfacing_Public_Post_Preview extends DS_Public_Post_Preview {
 	}
 
 	/**
+	 * Returns the public preview link.
+	 *
+	 * The link is the home link with these parameters:
+	 *  - preview, always true (query var for core)
+	 *  - _ppp, a custom nonce, see DS_Public_Post_Preview::create_nonce()
+	 *  - page_id or p or p and post_type to specify the post.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @param WP_Post $post The post object.
+	 * @return string The generated public preview link.
+	 */
+	public static function get_preview_link( $post, int $delay = 0 ): string {
+		if ( 'page' === $post->post_type ) {
+			$args = array(
+				'page_id' => $post->ID,
+			);
+		} elseif ( 'post' === $post->post_type ) {
+			$args = array(
+				'p' => $post->ID,
+			);
+		} else {
+			$args = array(
+				'p'         => $post->ID,
+				'post_type' => $post->post_type,
+			);
+		}
+
+		$args['preview'] = true;
+		$args['_ppp']    = self::create_nonce( 'public_post_preview_' . $post->ID, $delay );
+
+		$link = add_query_arg( $args, home_url( '/' ) );
+
+		return apply_filters( 'ppp_preview_link', $link, $post->ID, $post );
+	}
+
+	/**
 	 * Checks if a public preview is enabled for a post.
 	 *
 	 * @param WP_Post $post The post object.
@@ -63,11 +100,30 @@ class Webfacing_Public_Post_Preview extends DS_Public_Post_Preview {
 	 *
 	 * @see wp_nonce_tick()
 	 *
+	 * @since 2.1.0
+	 *
 	 * @return int The time-dependent variable.
 	 */
-	private static function nonce_tick() {
+	public static function nonce_tick( int $delay = 0 ): int {
 		$nonce_life = apply_filters( 'ppp_nonce_life', 60 * 60 * 48 ); // 48 hours
-		return ceil( time() / ( $nonce_life / 2 ) );
+
+		return ceil( ( time() + ( 12 * HOUR_IN_SECONDS ) + $delay ) / ( $nonce_life / 2 ) );
+	}
+
+	/**
+	 * Creates a random, one time use token. Without an UID.
+	 *
+	 * @see wp_create_nonce()
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param  string|int $action Scalar value to add context to the nonce.
+	 * @return string The one use form token.
+	 */
+	private static function create_nonce( $action = -1, int $delay = 0 ): string {
+		$i = self::nonce_tick( $delay );
+
+		return substr( wp_hash( $i . $action, 'nonce' ), -12, 10 );
 	}
 
 	/**

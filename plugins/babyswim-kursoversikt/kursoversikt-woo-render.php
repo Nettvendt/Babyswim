@@ -150,7 +150,7 @@ foreach ( array_keys( $events_matrix ) as $loc ) {
 				$can_preview = $event ? class_exists( 'Webfacing_Public_Post_Preview' ) && Webfacing_Public_Post_Preview::is_public_preview_enabled( $event ) : false;
 				$link  = $event && $stock ? ( $is_pub || ! $can_preview ? get_the_permalink( $event ) : Webfacing_Public_Post_Preview::get_preview_link( $event ) ) : false;
 				$title = $event ? get_the_terms( $event->ID, 'product_cat' )[0]->name : '';
-				echo PHP_EOL, '<td class="', $class, '" data-label="', $weekday[ $day ],'"><a', $link ? ' href="' . $link . '"' : '', '>', $title, '<br/>', $event ? $stock . ' ledig' . ( $stock == 1 ? '' : 'e' ) : '', '</a></td>';
+				echo PHP_EOL, '<td class="', $class, '" data-label="', $weekday[ $day ],'"><a', $link ? ' href="' . $link . '"' : '', '>', $title, '<br/>', $event ? ( $stock == 0 ? 'Ingen' : $stock ) . ' ledig' . ( $stock == 1 ? '' : 'e' ) : '', '</a></td>';
 			}
 			echo PHP_EOL, '</tr>';
 		}

@@ -350,4 +350,5 @@ add_action( 'admin_head', function() {
 
 add_filter( 'woocommerce_helper_suppress_admin_notices', '__return_true' );	// Connect/subscription nag
 
-include 'woo-checkout-functions.php';
+include_once 'woo-checkout-functions.php';
+include_once 'activity-trash.php';

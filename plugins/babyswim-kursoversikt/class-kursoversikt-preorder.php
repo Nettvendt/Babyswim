@@ -4,7 +4,7 @@
  */
 class Kursoversikt_Preorder {
 
-	const line_height = 18.36;	// px
+	const line_height = 18.54;	// px
 
 	public static function order_events( array $events ): array {
 		$ordered_events = [];
@@ -26,6 +26,13 @@ class Kursoversikt_Preorder {
 		echo '</pre>';
 		ksort( $ordered_events, SORT_STRING );
 		return count( $ordered_events ) == count( $events ) ? $ordered_events : $events;
+	}
+
+	private static function ppp_link_life( int $delay = 0 ): array {
+		$nonce_life = apply_filters( 'ppp_nonce_life', 60 * 60 * 48 ); // 48 hours
+		$half_nonce = intval( $nonce_life / 2 );
+		$limit = ( Webfacing_Public_Post_Preview::nonce_tick( $delay ) * $half_nonce ) + ( 12 * HOUR_IN_SECONDS );
+		return [ $limit - $half_nonce, $limit + $half_nonce ];
 	}
 	
 	public static function page() {

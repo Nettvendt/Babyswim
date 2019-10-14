@@ -742,13 +742,14 @@ class Kursoversikt_Deltakere {
 		}
 		echo '</p>';
 		if ( current_user_can( 'edit_shop_orders' ) ) {
-			echo PHP_EOL, '<p title="Se.">Tilby <a href="index.php?page=preorder" title="Gå til.">forhåndsbestilling/e-post/SMS</a></p>';
+			echo PHP_EOL, '<p title="Send tilbud.">Tilby <a href="index.php?page=preorder" title="Gå til.">forhåndsbestilling/e-post/SMS</a></p>';
+			echo PHP_EOL, '<p title="Få oversikt.">Se <a href="admin.php?page=wc-reports&tab=stock&report=most_stocked" title="Se ledighet.">kurs med flest ledige plasser</a>.</p>';
 		}
 		if ( current_user_can( 'manage_email_logs' ) ) {
-			echo PHP_EOL, '<p title="Se.">Se <a href="admin.php?page=email-log" title="Vis loggen.">e-post/SMS-logg</a><!-- &nbsp; <a href="admin.php?page=twilio-options&tab=logs" title="Vis loggen.">SMS-logg</a-->.</p>';
+			echo PHP_EOL, '<p title="Se.">Se <a href="admin.php?page=email-log" title="Vis loggen.">e-post/SMS-logg</a>.</p>';
 		}
 		if ( current_user_can( 'edit_users' ) ) {
-			echo PHP_EOL, '<p title="Se.">Se <a href="users.php?role=customer&orderby=registered&order=desc" title="Vis kunder.">siste registerte kunder</a>.</p>';
+			echo PHP_EOL, '<p title="Se.">Se <a href="admin.php?page=wc-reports&tab=customers&report=customer_list" title="Vis alle kunder, alfabetisk.">kundeliste</a> &nbsp; | &nbsp; Se <a href="users.php?role=customer&orderby=registered&order=desc" title="Vis nyeste kunder.">siste registerte kunder</a>.</p>';
 		}
 		if ( current_user_can( 'read_participants' ) ) {
 			echo PHP_EOL, '<p title="Se.">Få ut <a href="index.php?page=deltakere" title="Vis listene.">instruktørlister for utskrift</a>.</p>';
