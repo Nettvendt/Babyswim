@@ -145,6 +145,8 @@ foreach ( array_keys( $events_matrix ) as $loc ) {
 			echo PHP_EOL, '<th scope="row" data-label="', $day_part, 'kurs &nbsp;">', $display_time, '-', self::fmt_display_time( $key_time + $dur ), '</th>';
 			for ( $day = 1; $day <= 5; $day++ ) {
 				$event = empty( $events_matrix[ $loc ][ $key_time ][ $day ] ) ? null : $events_matrix[ $loc ][ $key_time ][ $day ];
+				$time = Kursoversikt::get_event_start_time( $event );
+				$started = current_time( 'U' ) > $time ? ', i gang' : '';
 				$stock = $event ? intval( get_post_meta( $event->ID, '_stock', true ) ) : 0;
 				$class = $event ? ( $stock ? 'active' : 'inactive' ) : 'none';
 				$can_preview = $event ? class_exists( 'Webfacing_Public_Post_Preview' ) && Webfacing_Public_Post_Preview::is_public_preview_enabled( $event ) : false;
