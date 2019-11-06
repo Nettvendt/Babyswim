@@ -299,7 +299,7 @@ class Kursoversikt_Preorder {
 		<h4>Emne: [<?=get_bloginfo()?>] <?=$subject?></h4>
 		<div style="border: 1px solid darkgray; width: 60em; padding: 0 1em 1em;">
 		<p>Kjære kunde og kursdeltaker</p>
-		<p><?=esc_html($_POST['text1'])?></p>
+		<p><?=str_replace(PHP_EOL,'<br/>',esc_html($_POST['text1']))?></p>
 <?php
 						if ( $selected_pages_ids ) {
 ?>
@@ -337,8 +337,8 @@ class Kursoversikt_Preorder {
 <?php
 						}
 ?>
-		<p><?=esc_html($_POST['text2'])?></p>
-		<p>Med vennlig hilsen<br />
+		<p><?=str_replace(PHP_EOL,'<br/>',esc_html($_POST['text2']))?></p>
+		<p>-- <br />Med vennlig hilsen<br />
 		<?=$current_user->display_name?><br />
 		<?=get_bloginfo()?>
 		</p>
@@ -385,7 +385,7 @@ class Kursoversikt_Preorder {
 			'Tilbud om ' . $title :
 			'Viktig melding til kursdeltakere' );
 		$message  = '<p>Kjære kunde og kursdeltaker</p>' . PHP_EOL;
-		$message .= '<p>' . $text1 . '</p>' . PHP_EOL;
+		$message .= '<p>' . str_replace( PHP_EOL, '<br />', $text1 ) . '</p>' . PHP_EOL;
 		if ( $selected_pages_ids || $selected_products_ids ) {
 			$message .= '<h4>Kurs du nå kan forhåndspåmelde deg til:</h4>';
 		}
@@ -411,7 +411,7 @@ class Kursoversikt_Preorder {
 		if ( $selected_coupon_id ) {
 			$message .= '<p>Rabattkode: ' . get_post( $selected_coupon_id )->post_title .'</p>'. PHP_EOL;
 		}
-		$message .= '<p>' . $text2. '</p>' . PHP_EOL;
+		$message .= '<p>' . str_replace( PHP_EOL, '<br />', $text2 ) . '</p>' . PHP_EOL;
 		$message .= '<p>-- <br />Med vennlig hilsen<br />' . $current_user->display_name . '<br />' . get_bloginfo() . '<br />'. PHP_EOL;
 		$headers = [ 'Content-type: text/html; charset=UTF-8' ];
 		echo PHP_EOL, '<ol>';
@@ -431,6 +431,16 @@ class Kursoversikt_Preorder {
 		}
 		if ( $selected_customers_emails ) {
 			echo PHP_EOL, '<p><strong>Valgte mottakere:</strong> Kopier til til/adressefeltet i din egen app:<pre style="border: solid black 1px; padding: .5em; background-color: white; width: 40%;">', implode( ',' . PHP_EOL, $all_emails ), '</pre>';
+			echo PHP_EOL, '<form method="post" action="', plugins_url( 'export-mailchimp.php', __FILE__ ), '" style="display: inline">';
+			foreach ( $selected_customers_emails as $customer_email ) {
+				$customer_name = $customer_data[ $customer_email ]['name'];
+				$names = explode( ' ', $customer_name );
+				$last_name   = array_pop( $names );
+				$first_name  = count( $names > 0 ) ? $names[0] : '' ;
+				$first_name .= count( $names > 1 ) ? ' ' . $names[1] : '';
+				echo PHP_EOL, '<input type="hidden" name="mailchimp[]" value="', $customer_email, ',', trim( $first_name ), ',', trim( $last_name ), '" />';
+			}
+			echo PHP_EOL, '<button type="submit">Last ned CSV-fil for Excel/MailChimp</button></form>';
 		}
 		echo PHP_EOL, '<p><strong>Forslag til emnefelt:</strong> Kopier til til/emnefeltet i din egen app:<pre style="border: solid black 1px; padding: .5em; background-color: white; width: 40%;">[', get_bloginfo(), '] Melding til kursdeltakere</pre></p>';
 		echo PHP_EOL, '<p><small>skriv så din egen e-postmelding.</small></p>';
