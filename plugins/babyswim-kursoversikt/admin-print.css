@@ -4,8 +4,9 @@
 .wrap .printarea table, .wrap .printarea table th, .wrap .printarea table td { vertical-align: middle; font-size: 14px; border: 0 none; border-right: 0 none; border-bottom: 0 none; }
 .wrap .printarea table .square { padding: 0 !important; }
 .wrap .printarea table .square div { width: 100%; height: 100%; min-height: 100%; box-sizing: border-box; margin: 5px; padding: 0; border: 1px solid black; border-radius: 2px; }
-.wrap .printarea h1.wrap .printarea h2.wrap .printarea h3.wrap .printarea h4 { margin: 18px 0; padding: 0; line-height: 18.2px; }
+.wrap .printarea h1, .printarea h2, .printarea h3, .printarea h4 { margin: 6px 0; padding: 0; line-height: 16px; }
 .wrap .printarea table { width: 99%; }
-#adminmenumain, #adminmenuwrap, #wpfooter, #search, #buttons, h2, [role="tablist"] { display: none; }
+#adminmenumain, #adminmenuwrap, #wpfooter, #search, #buttons, .printarea hr:first-child, .wrap > h2, .wrap > h3, [role="tablist"] { display: none; }
+.printarea br:last-child { display: none; }
 #wpcontent, .wrap { margin: 0 !important; padding: 0; }
 #adminmenuwrap { width: 1px; height: 1px; }
