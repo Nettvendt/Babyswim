@@ -44,7 +44,7 @@ class Webfacing_Public_Post_Preview extends DS_Public_Post_Preview {
 	 * @param WP_Post $post The post object.
 	 * @return string The generated public preview link.
 	 */
-	public static function get_preview_link( $post, int $delay = 0 ): string {
+	public static function get_preview_link( $post, $multiple = 1 ) {
 		if ( 'page' === $post->post_type ) {
 			$args = array(
 				'page_id' => $post->ID,
@@ -61,7 +61,7 @@ class Webfacing_Public_Post_Preview extends DS_Public_Post_Preview {
 		}
 
 		$args['preview'] = true;
-		$args['_ppp']    = self::create_nonce( 'public_post_preview_' . $post->ID, $delay );
+		$args['_ppp']    = self::create_nonce( 'public_post_preview_' . $post->ID, $multiple );
 
 		$link = add_query_arg( $args, home_url( '/' ) );
 
@@ -104,10 +104,10 @@ class Webfacing_Public_Post_Preview extends DS_Public_Post_Preview {
 	 *
 	 * @return int The time-dependent variable.
 	 */
-	public static function nonce_tick( int $delay = 0 ): int {
+	private static function nonce_tick( $multiple = 1) {
 		$nonce_life = apply_filters( 'ppp_nonce_life', 60 * 60 * 48 ); // 48 hours
 
-		return ceil( ( time() + ( 12 * HOUR_IN_SECONDS ) + $delay ) / ( $nonce_life / 2 ) );
+		return ceil( time() / ( $multiple * $nonce_life / 2 ) );
 	}
 
 	/**
@@ -120,8 +120,8 @@ class Webfacing_Public_Post_Preview extends DS_Public_Post_Preview {
 	 * @param  string|int $action Scalar value to add context to the nonce.
 	 * @return string The one use form token.
 	 */
-	private static function create_nonce( $action = -1, int $delay = 0 ): string {
-		$i = self::nonce_tick( $delay );
+	private static function create_nonce( $action = -1, $multiple = 1 ) {
+		$i = self::nonce_tick();
 
 		return substr( wp_hash( $i . $action, 'nonce' ), -12, 10 );
 	}
@@ -164,9 +164,9 @@ class Webfacing_Public_Post_Preview extends DS_Public_Post_Preview {
 			return false;
 		}
 
-		if ( ! self::verify_nonce( get_query_var( '_ppp' ), 'public_post_preview_' . $post_id ) ) {
-			wp_die( __( 'The link has been expired!', 'public-post-preview' ) );
-		}
+//		if ( ! self::verify_nonce( get_query_var( '_ppp' ), 'public_post_preview_' . $post_id ) ) {
+//			wp_die( __( 'The link has been expired!', 'public-post-preview' ) );
+//		}
 
 		if ( ! apply_filters( 'is_public_preview_available', in_array( $post_id, self::get_preview_post_ids() ), $post_id ) ) {
 			wp_die( __( 'No public preview available!', 'public-post-preview' ) );
@@ -273,21 +273,21 @@ class Webfacing_Public_Post_Preview extends DS_Public_Post_Preview {
 		}, 10, 2 );
 		
 		add_filter( 'ppp_published_statuses', function( $published_statuses ) {
-			$published_statuses = array_diff( $published_statuses, ['private'] );
+			$published_statuses = array_diff( $published_statuses, [ 'private' ] );
 			return $published_statuses;
 		} );
 
-		add_filter( 'ppp_nonce_life', function( $nonce_life ) {
-			$nonce_life = DAY_IN_SECONDS * Kursoversikt::$preview_life;
-			return $nonce_life;
-		} );
+//		add_filter( 'ppp_nonce_life', function( $nonce_life ) {
+//			$nonce_life = DAY_IN_SECONDS * Kursoversikt::$preview_life;
+//			return $nonce_life;
+//		} );
 		
 		if ( ! is_admin() ) {
 			add_filter( 'pre_get_posts', [ __CLASS__, 'show_public_preview' ] );
 		}
 
 		add_filter( 'woocommerce_is_purchasable', function( $is_purchasable, $object ) {
-			$is_purchasable = $object->get_price() > 0.;
+			$is_purchasable = $is_purchasable || $object->get_price() !== '';
 			return $is_purchasable;
 		}, 10, 2 );
 	}

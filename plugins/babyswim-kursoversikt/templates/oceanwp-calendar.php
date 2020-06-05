@@ -54,7 +54,7 @@
 								<?php while ( have_posts() ) : the_post(); ?>
 
 									<div class="entry-content entry clr">
-										<?php the_content(); ?>
+										<?php if ( ! isset( $_GET['participants'] ) ) the_content(); ?>
 										<?php if ( Kursoversikt::$use_tickera ) Kursoversikt::tickera_render(); else Kursoversikt::woo_render(); ?>
 									</div><!-- .entry-content -->
 

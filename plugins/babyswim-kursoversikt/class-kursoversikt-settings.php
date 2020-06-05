@@ -18,6 +18,26 @@ class Kursoversikt_Settings {
 	
 	public static $sections;
 
+	public function calendar_page_link( bool $published = false, bool $link = true ): string {
+		$html = '';
+		$pending_pages = get_posts( [ 'post_type' => 'page', 'post_status' => $published ? [ 'publish' ] : [ 'pending', 'future'], 'posts_per_page' => 99 ] );
+		foreach ( $pending_pages as $page ) {
+			$page_id = intval( $page->ID );
+			if ( get_page_template_slug( $page_id ) == 'templates/oceanwp-calendar.php' || has_shortcode( $page->post_content, 'kursoversikt' ) || has_block( 'babyswim/kursoversikt', $page_id ) ) {
+				if ( $link ) {
+					$html .= PHP_EOL . '<a href="' . get_the_permalink( $page ) . '" title="Vis siden.">' . get_the_title( $page ) . '</a>';
+					if ( current_user_can( 'edit_page', $page_id ) ) {
+						$html .= ' <a href="' . get_edit_post_link( $page ) . '" title="Rediger siden.">(rediger)'. '</a>';
+					}
+				} else {
+					$html .= PHP_EOL . get_the_title( $page );
+				}
+
+			}
+		}
+		return $html;
+	}
+	
 	public function select( $args ) {
 		$opts  = get_option( Kursoversikt::pf . 'settings' );
 		$id    = esc_attr( $args['label_for'] );
@@ -67,11 +87,11 @@ class Kursoversikt_Settings {
 		$opts  = get_option( Kursoversikt::pf . 'settings' );
 		$id    = isset( $args['label_for'] ) ? esc_attr( $args['label_for'] ) : false;
 		$type  = isset( $args['type'     ] ) ? esc_attr( $args['type'     ] ) : false;
-		$unit  = isset( $args['unit'     ] ) ? esc_attr( $args['unit'     ] ) : false;
-		$min   = isset( $args['min'      ] ) ? esc_attr( $args['min' ] ) : false;
-		$max   = isset( $args['max'      ] ) ? esc_attr( $args['max' ] ) : false;
-		$step  = isset( $args['step'     ] ) ? esc_attr( $args['step'] ) : false;
-		$width = isset( $args['width'    ] ) ? esc_attr( $args['step'] ) : ( $max ? strlen( $max ) + 2 : false );
+		$unit  = isset( $args['unit'     ] ) ? wp_kses( $args['unit' ], [ 'a' => [ 'href' => [], 'title' => [] ] ] ) : false;
+		$min   = isset( $args['min'      ] ) ? esc_attr( $args['min'      ] ) : false;
+		$max   = isset( $args['max'      ] ) ? esc_attr( $args['max'      ] ) : false;
+		$step  = isset( $args['step'     ] ) ? esc_attr( $args['step'     ] ) : false;
+		$width = isset( $args['width'    ] ) ? esc_attr( $args['width'    ] ) : ( $max ? strlen( $max ) + 2 : false );
 		$align = $type == 'number' ? 'text-align:right;' : false;
 		$value = isset( $opts[ $id ] ) ? $opts[ $id ] : ( isset( $args['default'] ) ? $args['default'] : false );
 ?>
@@ -142,21 +162,21 @@ class Kursoversikt_Settings {
 		];
 		add_settings_field( $args['label_for'], $args['label'], [ $this, 'checkbox' ], self::$page, self::$sections[0], $args );
 
-		$args = [
-			'label_for' => 'auto-content',
-			'type'      => 'checkbox',
-			'label'     => 'Automatisk innhold',
-			'unit'      => 'på/av',
-		];
-		add_settings_field( $args['label_for'], $args['label'], [ $this, 'checkbox' ], self::$page, self::$sections[0], $args );
-
-		$args = [
-			'label_for' => 'auto-excerpt',
-			'type'      => 'checkbox',
-			'label'     => 'Automatisk utdrag',
-			'unit'      => 'på/av',
-		];
-		add_settings_field( $args['label_for'], $args['label'], [ $this, 'checkbox' ], self::$page, self::$sections[0], $args );
+//		$args = [
+//			'label_for' => 'auto-content',
+//			'type'      => 'checkbox',
+//			'label'     => 'Automatisk innhold',
+//			'unit'      => 'på/av',
+//		];
+//		add_settings_field( $args['label_for'], $args['label'], [ $this, 'checkbox' ], self::$page, self::$sections[0], $args );
+//
+//		$args = [
+//			'label_for' => 'auto-excerpt',
+//			'type'      => 'checkbox',
+//			'label'     => 'Automatisk utdrag',
+//			'unit'      => 'på/av',
+//		];
+//		add_settings_field( $args['label_for'], $args['label'], [ $this, 'checkbox' ], self::$page, self::$sections[0], $args );
 
 		add_settings_section( self::$sections[1], 'Innstillinger for standard kursperiode', [ $this, 'section' ], self::$page );
 		
@@ -188,26 +208,86 @@ class Kursoversikt_Settings {
 			'type'      => 'time',
 			'label'     => 'Varighet',
 			'default'   => '00:30',			// Half an hour
-			'unit'      => 'timer:minutter',
+			'unit'      => 'tt:mm',
 			'min'       => '00:10',
 			'max'       => '04:30',
-			'step'      => '00:10',
+			'step'      => '1:00',
 		];
 		add_settings_field( $args['label_for'], $args['label'], [ $this, 'input' ], self::$page, self::$sections[1], $args );
 
-		add_settings_section( self::$sections[2], 'Innstillinger for offentlig forhåndsvisning', [ $this, 'section' ], self::$page );
+		add_settings_section( self::$sections[2], 'Innstillinger for forhåndspåmelding', [ $this, 'section' ], self::$page );
+
+//		$args = [
+//			'label_for' => 'preview-life',
+//			'type'      => 'number',
+//			'label'     => 'Varighet lenker til forhåndsvisning',
+//			'unit'      => 'dager',
+//			'min'       => 1,
+//			'max'       => Kursoversikt::$event_times * Kursoversikt::$event_interval,
+//		];
+//		add_settings_field( $args['label_for'], $args['label'], [ $this, 'input' ], self::$page, self::$sections[2], $args );
 
 		$args = [
-			'label_for' => 'preview-life',
-			'type'      => 'number',
-			'unit'      => 'dager',
-			'min'       => 1,
-			'max'       => Kursoversikt::$event_times * Kursoversikt::$event_interval,
-			'step'      => 1,
+			'label_for' => 'preview-links-date',
+			'type'      => 'date',
+			'label'     => /*$this->calendar_page_link( true, false ) . ' og ' . */$this->calendar_page_link( false, false ) . ' åpner dato',
+			'min'       => wp_date( 'c' ),
+			'max'       => wp_date( 'c', strtotime( '+' . Kursoversikt::$event_times * Kursoversikt::$event_interval . ' days' ) ),
+			'width'     => 9,
+			'unit'      => /*$this->calendar_page_link( true ) . ' | ' . */$this->calendar_page_link(),
 		];
-		add_settings_field( $args['label_for'], 'Varighet', [ $this, 'input' ], self::$page, self::$sections[2], $args );
-	}
+		add_settings_field( $args['label_for'], $args['label'], [ $this, 'input' ], self::$page, self::$sections[2], $args );
+
+		$args = [
+			'label_for' => 'preview-links-time',
+			'type'      => 'time',
+			'label'     => /*$this->calendar_page_link( true, false ) . ' og ' . */$this->calendar_page_link( false, false ) . ' åpner kl',
+			'unit'      => 'tt:mm',
+			'min'       => '00:00',
+			'max'       => '23:50',
+			'step'      => '1:00',
+		];
+		add_settings_field( $args['label_for'], $args['label'], [ $this, 'input' ], self::$page, self::$sections[2], $args );
+
+		set_transient ( Kursoversikt::pf .'settings', $GLOBALS['wp_settings_fields' ][ self::$page ] );
+}
 	
+	public static function get_settings(): array {
+		$fields = [];
+//		$page   = $GLOBALS['wp_settings_fields'  ][ self::$page ] ?? false;
+		$page   = get_transient ( Kursoversikt::pf .'settings' );
+		foreach ( $page as $section_name => $section ) {
+			$fields[ $section_name . '-head'] = [
+				'name' => $sections[ $section_name ]['title'],
+				'type' => 'title',
+				'id' => $section_name,
+			];
+			foreach ( $section as $field_name => $field ) {
+				$fields[ $field_name ] = [
+					'name' => $field['args']['label'],
+					'type' => $field['callback'][1],
+					'id'   => Kursoversikt::pf .'settings[' . $field_name . ']',
+				];
+				if ( $field['args']['object'] === 'terms' ) {
+					$fields[ $field_name ]['options'] = get_terms( [
+						'object_id'  => $field['args']['terms']['object_id'],
+						'taxonomy'   => $field['args']['terms']['taxonomy'],
+						'parent'     => 0,
+						'hide_empty' => false,
+						'fields'     => 'id=>name',
+					] );
+				} elseif ( $field['args']['object'] === 'attribute_taxonomies' ) {
+					$fields[ $field_name ]['options'] = wp_list_pluck( wc_get_attribute_taxonomies(), 'attribute_label', 'attribute_name' );
+				}
+			}
+			$fields[ $section_name . '-footer'] = [
+				'type' => 'sectionend',
+				'id' => $section_name . '-end',
+			];
+		}
+		return $fields;
+	}
+
 	public function __construct() {
 		
 		self::$page     = Kursoversikt::$pf .'page';
@@ -229,5 +309,38 @@ class Kursoversikt_Settings {
 		add_action( 'admin_init', [ $this, 'init' ] );
 		
 		add_action( 'admin_menu', [ $this, 'menu' ] );
+
+		add_filter( 'woocommerce_settings_tabs_array', function( array $settings_tabs ): array {
+			$settings_tabs[ Kursoversikt::pf . 'settings' ] = mb_str_replace( ' for WooCommerce', '', Kursoversikt::get_plugin_data()['PluginName'] );
+			return $settings_tabs;
+		}, 40 );
+
+		add_action( 'woocommerce_settings_tabs_'  . Kursoversikt::pf . 'settings', function() {
+			woocommerce_admin_fields( self::get_settings() );
+		} );
+
+		add_action( 'woocommerce_update_options_' . Kursoversikt::pf . 'settings', function() {
+			woocommerce_update_options( self::get_settings() );
+			delete_transient ( Kursoversikt::pf . 'settings' );
+		} );
+
+		if ( WP_DEBUG ) {
+			
+			$this->settings = get_option( Kursoversikt::pf . 'settings', [] );
+
+			add_action( 'admin_notices', function() { ?>
+			<div class="notice notice-error is-dismissible">
+				<p><strong style="color: darkred;"><?=get_bloginfo()?> er i feilsøkingsmodus for utvikling, noe det ikke skal være under produksjon. Kontakt <a href="mailto:<?=get_bloginfo('admin_email')?>"><?=get_user_by('email',get_bloginfo('admin_email'))->display_name??'administrator'?></a> straks eller <a href="tools.php?page=wp-local-dev-master">slå av hefra</a>.</strong><br />
+					<?php echo Kursoversikt::get_plugin_data()['Name']; ?><br />
+					<?php echo plugin_basename( WEBFACING_EVENTS ); ?><br />
+					<?php echo WEBFACING_EVENTS; ?><br />
+					<!--?php echo self::$domain_path, self::$text_domain, '-', \get_user_locale( \get_current_user_id() ), '.mo'; ?><br /-->
+					<?php echo __FILE__; ?><br />
+				</p>
+					<?php swim_export( Kursoversikt::pf . 'settings' ); swim_export( $this->settings ); ?>
+			</div>
+<?php
+			} );
+		}
 	}
 }
